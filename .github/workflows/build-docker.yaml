@@ -1,20 +1,33 @@
-name: Build and Publish image to Docker Hub
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'api/Dockerfile'
-      - 'front-end-nextjs/Dockerfile'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qr-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qr-frontend
+  template:
+    metadata:
+      labels:
+        app: qr-frontend
+    spec:
+      containers:
+      - name: qr-frontend
+        image: rishabkumar7/devops-qr-code-frontend:latest
+        ports:
+        - containerPort: 3000
 
-jobs:
-  publish_images:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: build image
-        run: |
-          docker build ./api/ -t rishabkumar7/devops-qr-code-backend:latest
-          docker build ./front-end-nextjs/ -t rishabkumar7/devops-qr-code-frontend:latest
-      
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qr-frontend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: qr-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
